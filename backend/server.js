@@ -26,73 +26,79 @@ app.post("/upload", upload.single("image"), (req, res) => {
       res.status(500).send("Error processing image.");
     });
 });
-
+const formatGradeYear = (text) => {
+  const cleanedText = text.replace(/[^0-9]/g, "").trim();
+  if (cleanedText.length === 6) {
+    return cleanedText.slice(0, 2) + "/" + cleanedText.slice(2);
+  }
+  return cleanedText;
+};
 const processText = (text) => {
   const extractedData = {};
   const lines = text.split("\n");
   let foundExpireDate = false;
   lines.forEach((line) => {
-    console.log("Processing line:", line); // Debugging line
+    console.log("Processing line:", line);
 
     let match;
 
     // Match and clean NAME field
     match = line.match(/\bname\b\s*[:=]?\s*(.+)/i);
     if (match) {
-      console.log("Matched Name:", match[1]); // Debugging line
+      console.log("Matched Name:", match[1]);
       extractedData["Name"] = cleanText(match[1], /[^a-zA-Z\s]/g);
     }
     // Match and clean ID field
     match = line.match(/\b(?:id|id number|student id)\b\s*[:=]?\s*(.+)/i);
     if (match) {
-      console.log("Matched ID:", match[1]); // Debugging line
+      console.log("Matched ID:", match[1]);
       extractedData["ID"] = cleanText(match[1], /[^0-9-]/g);
     }
     // Match and clean D.O.B. field
     match = line.match(/D.O.B\s*[:=]\s*(.+)/i);
     if (match) {
-      console.log("Matched D.O.B.:", match[1]); // Debugging line
+      console.log("Matched D.O.B.:", match[1]);
       extractedData["D.O.B."] = cleanDateText(match[1]);
     }
 
     // Match and clean GRADE/YEAR field
-    match = line.match(/\b(?:grade|year)\b\s*[:=]?\s*(.+)/i);
+    match = line.match(/\b(?:grade|year|grade\/year)\b\s*[:=]?\s*(.+)/i);
     if (match) {
-      console.log("Matched Grade/Year:", match[1]); // Debugging line
-      extractedData["Grade/Year"] = cleanText(match[1], /[^a-zA-Z0-9\s]/g);
+      console.log("Matched Grade/Year:", match[1]);
+      extractedData["Grade/Year"] = formatGradeYear(match[1]);
     }
     // Match and clean ISSUED ON field
     match = line.match(/\b(?:issued on|issue date)\b\s*[:=]?\s*(.+)/i);
     if (match) {
-      console.log("Matched Issued On:", match[1]); // Debugging line
+      console.log("Matched Issued On:", match[1]);
       extractedData["Issued On"] = cleanDateText(match[1]);
     }
 
     // Match and clean ADDRESS field
     match = line.match(/\b(?:address)\b\s*[:=]?\s*(.+)/i);
     if (match) {
-      console.log("Matched Address:", match[1]); // Debugging line
+      console.log("Matched Address:", match[1]);
       extractedData["Address"] = cleanText(match[1], /[^a-zA-Z0-9\s,]/g);
     }
 
     // Match and clean EXPIRE DATE field
     match = line.match(/(?:expire date|valid until|valid to)\s*[:=]\s*(.+)/i);
     if (match) {
-      console.log("Matched Expire Date:", match[1]); // Debugging line
+      console.log("Matched Expire Date:", match[1]);
       extractedData["Expire Date"] = cleanDateText(match[1]);
       foundExpireDate = true;
     }
     // Match and clean DATE OF BIRTH field
     match = line.match(/date of birth\s*[:=]\s*(.+)/i);
     if (match) {
-      console.log("Matched Date of Birth:", match[1]); // Debugging line
+      console.log("Matched Date of Birth:", match[1]);
       extractedData["Date of Birth"] = cleanDateText(match[1]);
     } else {
       // Match and clean DATE field only if not already matched as "Expire Date"
       if (!foundExpireDate) {
         match = line.match(/date\s*[:=]\s*(.+)/i);
         if (match) {
-          console.log("Matched Date:", match[1]); // Debugging line
+          console.log("Matched Date:", match[1]);
           extractedData["Date"] = cleanDateText(match[1]);
         }
       }
@@ -107,7 +113,6 @@ const cleanText = (text, pattern) => {
 };
 
 const cleanDateText = (text) => {
-  // Handle dates in formats like "November 23, 1992" or "23/11/1992"
   return text.replace(/[^a-zA-Z0-9\s,/-]/g, "").trim();
 };
 
