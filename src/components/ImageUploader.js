@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Tesseract from "tesseract.js";
-// import "../";
 
 function ImageUploader() {
   const [image, setImage] = useState(null);
